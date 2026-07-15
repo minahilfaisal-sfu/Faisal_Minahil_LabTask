@@ -59,8 +59,6 @@ if algo == "Kmeans":
 elif algo == "DBSCAN":
     model = DBSCAN(eps=eps, min_samples=min_samples)
     labels = model.fit_predict(X_scaled)
-    st.write(labels)
-    st.write(pd.Series(labels).value_counts())
 
 # Catch error if no labels do not continue
 if  len(labels) ==0 : 
@@ -68,8 +66,21 @@ if  len(labels) ==0 :
     st.stop()
 
 df["cluster"] = pd.Categorical(labels.astype(str))
-n_clusters_found = df["cluster"].nunique()
-st.metric("Number of Clusters", n_clusters_found)
+if algo == "Kmeans":
+    n_clusters_found = df["cluster"].nunique()
+    st.metric("Number of Clusters", n_clusters_found)
+if algo == "DBSCAN":
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        n_clusters_found = len(set(labels)) - (1 if -1 in labels else 0)
+        st.metric("Clusters Found", n_clusters_found)
+    with col2:
+        noise_count = (labels == -1).sum()
+        st.metric("Noise Points", noise_count)
+    with col3:
+        locations = len(df)
+        st.metric("Locations", locations)
 
 map_tab, dr_tab = st.tabs(["Map","Dimensionality Reduction"])
 
